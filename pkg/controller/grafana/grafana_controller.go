@@ -37,7 +37,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-var log = logf.Log.WithName("controller")
+var log = logf.Log.WithName("grafana-controller")
 
 /**
 * USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
@@ -80,7 +80,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	err = c.Watch(&source.Kind{Type: &corev1.ConfigMap{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
+		IsController: false,
 		OwnerType:    &monitorsv1alpha1.Grafana{},
 	})
 	if err != nil {
@@ -88,7 +88,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	err = c.Watch(&source.Kind{Type: &corev1.Service{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
+		IsController: false,
 		OwnerType:    &monitorsv1alpha1.Grafana{},
 	})
 	if err != nil {
@@ -162,7 +162,7 @@ func (r *ReconcileGrafana) Reconcile(request reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, err
 	}
 
-	if !reflect.DeepEqual(grafanaConfig, foundGrafanaConfig) {
+	if !reflect.DeepEqual(grafanaConfig.Data, foundGrafanaConfig.Data) {
 		foundGrafanaConfig = grafanaConfig
 		log.Info("Updating grafana config", "namespace", grafanaConfig.Namespace, "name", grafanaConfig.Name)
 		err = r.Update(context.TODO(), foundGrafanaConfig)
@@ -197,7 +197,7 @@ func (r *ReconcileGrafana) Reconcile(request reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, err
 	}
 
-	if !reflect.DeepEqual(grafanaDataSrc, foundGrafanaDataSrc) {
+	if !reflect.DeepEqual(grafanaDataSrc.Data, foundGrafanaDataSrc.Data) {
 		foundGrafanaDataSrc = grafanaDataSrc
 		log.Info("Updating grafana data source", "namespace", grafanaDataSrc.Namespace, "name", grafanaDataSrc.Name)
 		err = r.Update(context.TODO(), foundGrafanaDataSrc)
@@ -224,7 +224,7 @@ func (r *ReconcileGrafana) Reconcile(request reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, err
 	}
 
-	if !reflect.DeepEqual(grafanaDash, foundGrafanaDash) {
+	if !reflect.DeepEqual(grafanaDash.Data, foundGrafanaDash.Data) {
 		foundGrafanaDash = grafanaDash
 		log.Info("Updating grafana dashboard source", "namespace", grafanaDash.Namespace, "name", grafanaDash.Name)
 		err = r.Update(context.TODO(), foundGrafanaDash)
@@ -252,7 +252,7 @@ func (r *ReconcileGrafana) Reconcile(request reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, err
 	}
 
-	if !reflect.DeepEqual(kafkaDash, foundKafkaDash) {
+	if !reflect.DeepEqual(kafkaDash.Data, foundKafkaDash.Data) {
 		foundKafkaDash = kafkaDash
 		log.Info("Updating kafka dashboard source", "namespace", kafkaDash.Namespace, "name", kafkaDash.Name)
 		err = r.Update(context.TODO(), foundKafkaDash)
@@ -278,20 +278,22 @@ func (r *ReconcileGrafana) Reconcile(request reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, err
 	}
 
-	// Updating status field of Grafana
-	if found.Status.AvailableReplicas != instance.Status.ActiveGrafanaCount {
-		instance.Status.ActiveGrafanaCount = found.Status.AvailableReplicas
-		log.Info("Updating Status", "namespace", instance.Namespace, "name", instance.Name)
-		err = r.Update(context.TODO(), instance)
+	// Update the found object and write the result back if there are any changes
+	// Reference: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md
+
+	// Here we reconcile params we manage via CRD
+	if !reflect.DeepEqual(found.Spec.Replicas, instance.Spec.Replicas) {
+		found.Spec.Replicas = instance.Spec.Replicas
+		log.Info("Resizing deployment replicas", "namespace", deploy.Namespace, "name", deploy.Name)
+		err = r.Update(context.TODO(), found)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
 	}
 
-	// Update the found object and write the result back if there are any changes
-	if !reflect.DeepEqual(deploy.Spec, found.Spec) {
+	if !reflect.DeepEqual(found.Spec.Template.Spec.Containers[0].Image, instance.Spec.Image) {
 		found.Spec = deploy.Spec
-		log.Info("Updating Deployment", "namespace", deploy.Namespace, "name", deploy.Name)
+		log.Info("Updating deployment image", "namespace", deploy.Namespace, "name", deploy.Name)
 		err = r.Update(context.TODO(), found)
 		if err != nil {
 			return reconcile.Result{}, err
@@ -316,15 +318,13 @@ func (r *ReconcileGrafana) Reconcile(request reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, err
 	}
 
-	// Update the found object and write the result back if there are any changes
-	if !reflect.DeepEqual(service.Spec, foundService.Spec) {
-		foundService.Spec = service.Spec
-		log.Info("Updating Service", "namespace", service.Namespace, "name", service.Name)
-		err = r.Update(context.TODO(), found)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-	}
+	// Updating status field of Grafana
+	//instance.Status.AvailableReplicas = deploy.Spec.Replicas
+	//instance.Status.Message = "Grafana has successfully progressed"
+	//err = r.Status().Update(context.Background(), instance)
+	//if err != nil {
+	//	return reconcile.Result{}, err
+	//}
 
 	return reconcile.Result{}, nil
 }

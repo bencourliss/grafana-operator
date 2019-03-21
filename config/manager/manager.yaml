@@ -4,12 +4,12 @@ metadata:
   labels:
     control-plane: grafana-controller-manager
     controller-tools.k8s.io: "1.0"
-  name: system
+  name: strimzi
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: grafana-controller-manager-service
+  name: manager-service
   namespace: system
   labels:
     control-plane: grafana-controller-manager
@@ -24,7 +24,7 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: grafana-controller-manager
+  name: manager
   namespace: system
   labels:
     control-plane: grafana-controller-manager

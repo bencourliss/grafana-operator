@@ -3,7 +3,7 @@ kind: Grafana
 metadata:
   labels:
     controller-tools.k8s.io: "1.0"
-  name: grafana-sample
+  name: grafana-sample-1
 spec:
   replicas: 1
   image: grafana/grafana:6.0.0-beta3

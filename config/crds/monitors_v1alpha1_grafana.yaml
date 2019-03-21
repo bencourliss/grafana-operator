@@ -37,6 +37,16 @@ spec:
               type: integer
           type: object
         status:
+          properties:
+            availableReplicas:
+              description: ActiveReplicaCount is the number of grafana replicas
+              format: int32
+              type: integer
+            message:
+              type: string
+          required:
+          - availableReplicas
+          - message
           type: object
   version: v1alpha1
 status:

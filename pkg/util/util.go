@@ -29,7 +29,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/kubernetes/staging/src/k8s.io/cli-runtime/pkg/kustomize/k8sdeps/kv"
 )
@@ -154,7 +153,7 @@ func GenerateService(grafana metav1.Object) *corev1.Service {
 		},
 		Spec: corev1.ServiceSpec{
 			Ports: []corev1.ServicePort{
-				{Port: 3000, TargetPort: intstr.IntOrString{IntVal: 3000, Type: intstr.Int}},
+				{Name: "http", Port: 3000},
 			},
 			Selector: map[string]string{"deployment": grafana.GetName() + "-grafana-deployment"},
 		},

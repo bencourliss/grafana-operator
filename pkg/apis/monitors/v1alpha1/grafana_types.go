@@ -50,7 +50,8 @@ type GrafanaStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// ActiveReplicaCount is the number of grafana replicas
-	ActiveGrafanaCount int32 `json:"active_grafana_count"`
+	AvailableReplicas *int32 `json:"availableReplicas"`
+	Message           string `json:"message"`
 }
 
 // +genclient
