@@ -76,6 +76,11 @@ func GenerateDeployment(grafana metav1.Object, replicas *int32, image string) *a
 							},
 						},
 					},
+					ImagePullSecrets: []corev1.LocalObjectReference{
+						{
+							Name: "cisco-cred-pull-secret",
+						},
+					},
 					Volumes: []corev1.Volume{
 						{
 							Name: "grafana-config",

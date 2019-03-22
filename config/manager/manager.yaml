@@ -4,7 +4,7 @@ metadata:
   labels:
     control-plane: grafana-controller-manager
     controller-tools.k8s.io: "1.0"
-  name: strimzi
+  name: grafana-manager
 ---
 apiVersion: v1
 kind: Service
@@ -44,7 +44,7 @@ spec:
       containers:
       - command:
         - /manager
-        image: dichque/grafana-op-aims:v1
+        image: containers.cisco.com/jaganaga/aims-grafana-controller:v3
         imagePullPolicy: Always
         name: manager
         env:
@@ -70,6 +70,8 @@ spec:
           name: cert
           readOnly: true
       terminationGracePeriodSeconds: 10
+      imagePullSecrets:
+        - name: cisco-cred-pull-secret
       volumes:
       - name: cert
         secret:
@@ -81,3 +83,13 @@ kind: Secret
 metadata:
   name: webhook-server-secret
   namespace: system
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cisco-cred-pull-secret
+  namespace: system
+data:
+  .dockerconfigjson: ewogICJhdXRocyI6IHsKICAgICJjb250YWluZXJzLmNpc2NvLmNvbSI6IHsKICAgICAgImF1dGgiOiAiSkdGd2NEcE1RbFEyUVV0U1NVczVSazFGU0VwRFVEZFhTRFZUVEZaTFZVTlRUbFZFUVRkWlQwUlpXa05UVnpaTE1rOUtPVmM0VURoS1NURXpWRm8yT0VGRFV6bFVNVXRaVlVReE5WUktRMGs0VVZnd01VZE9VVmxMUzA1S1RqWktOMUZGUjBaSlQxWkRVMFpVVHpaT1Z6aExOakEzVUVSVVFWSTNURVE9IiwKICAgICAgImVtYWlsIjogIiIKICAgIH0KICB9Cn0=
+type: kubernetes.io/dockerconfigjson
+

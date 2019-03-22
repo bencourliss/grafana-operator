@@ -1,0 +1,13 @@
+apiVersion: monitors.aims.cisco.com/v1alpha1
+kind: Grafana
+metadata:
+  labels:
+    controller-tools.k8s.io: "1.0"
+  name: grafana-sample-1
+spec:
+  replicas: 1
+  image: containers.cisco.com/jaganaga/grafana:6.0.0
+  grafana_admin_user: aims
+  grafana_admin_password: changeit
+  prometheus_url: http://prometheus-operated:9090
+
