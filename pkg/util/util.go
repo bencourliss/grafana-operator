@@ -60,7 +60,7 @@ func GenerateDeployment(grafana metav1.Object, replicas *int32, image string) *a
 				MatchLabels: map[string]string{"deployment": grafana.GetName() + "-deployment"},
 			},
 			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"deployment": grafana.GetName() + "-deployment"}},
+				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"deployment": grafana.GetName() + "-deployment", "app": "grafana"}},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
@@ -160,7 +160,7 @@ func GenerateService(grafana metav1.Object) *corev1.Service {
 			Ports: []corev1.ServicePort{
 				{Name: "http", Port: 3000},
 			},
-			Selector: map[string]string{"deployment": grafana.GetName() + "-grafana-deployment"},
+			Selector: map[string]string{"app": "grafana"},
 		},
 	}
 	return service
