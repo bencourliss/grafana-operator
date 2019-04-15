@@ -1,0 +1,11 @@
+# Default values for grafana-helm.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+grafana:
+  administrator: aims
+  password: changeit
+
+image:
+  repository: containers.cisco.com/jaganaga/grafana
+  tag: 6.0.0

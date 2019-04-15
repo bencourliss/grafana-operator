@@ -1,0 +1,15 @@
+apiVersion: monitors.aims.cisco.com/v1alpha1
+kind: Grafana
+metadata:
+  name: {{ include "grafana-helm.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "grafana-helm.name" . }}
+    helm.sh/chart: {{ include "grafana-helm.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: 1
+  image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+  grafana_admin_user: "{{ .Values.grafana.administrator }}"
+  grafana_admin_password: "{{ .Values.grafana.password }}"
+  prometheus_url: http://prometheus-operated:9090
