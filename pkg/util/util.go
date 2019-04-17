@@ -152,7 +152,7 @@ func GenerateService(grafana metav1.Object) *corev1.Service {
 
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      grafana.GetName() + "-grafana-service",
+			Name:      "grafana-operated",
 			Namespace: grafana.GetNamespace(),
 			Labels:    labels,
 		},
