@@ -2,6 +2,8 @@
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 
+release: docker-build docker-push deploy
+
 all: test manager
 
 # Run tests

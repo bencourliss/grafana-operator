@@ -8,5 +8,5 @@ spec:
     spec:
       containers:
       # Change the value of image field below to your controller image URL
-      - image: containers.cisco.com/jaganaga/aims-grafana-controller:v9
+      - image: containers.cisco.com/jaganaga/aims-grafana-controller:v12
         name: manager

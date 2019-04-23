@@ -47,7 +47,7 @@ func GenerateDeployment(grafana metav1.Object, replicas *int32, image string) *a
 	}
 
 	if image == "" {
-		image = "grafana/grafana:6.0"
+		image = "grafana/grafana:latest"
 	}
 
 	deploy := &appsv1.Deployment{
