@@ -44,7 +44,7 @@ spec:
       containers:
       - command:
         - /manager
-        image: containers.cisco.com/jaganaga/aims-grafana-controller:v12
+        image: containers.cisco.com/jaganaga/aims-grafana-controller:v14
         imagePullPolicy: Always
         name: manager
         env:
