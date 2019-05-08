@@ -1,0 +1,72 @@
+{
+  "aliasColors": {
+    "localhost:7071": "#890F02"
+  },
+  "bars": false,
+  "dashLength": 10,
+  "dashes": false,
+  "datasource": "prometheus",
+  "editable": true,
+  "error": false,
+  "fill": 1,
+  "grid": {},
+  "gridPos": {
+    "h": 6,
+    "w": 8,
+    "x": 16,
+    "y": 6
+  },
+  "id": 3,
+  "isNew": true,
+  "legend": {
+    "avg": false,
+    "current": false,
+    "max": false,
+    "min": false,
+    "show": true,
+    "total": false,
+    "values": false
+  },
+  "lines": true,
+  "linewidth": 2,
+  "links": [],
+  "nullPointMode": "connected",
+  "percentage": false,
+  "pointradius": 5,
+  "points": false,
+  "renderer": "flot",
+  "seriesOverrides": [],
+  "spaceLength": 10,
+  "stack": false,
+  "steppedLine": false,
+  "targets": [
+    {
+      "expr": "sum without(gc)(rate(jvm_gc_collection_seconds_sum{job=\"my-cluster-kafka-bootstrap\"}[5m]))",
+      "format": "time_series",
+      "intervalFactor": 10,
+      "legendFormat": "{{pod}}",
+      "metric": "jvm_gc_collection_seconds_sum",
+      "refId": "A",
+      "step": 4
+    }
+  ],
+  "thresholds": [],
+  "timeFrom": null,
+  "timeRegions": [],
+  "timeShift": null,
+  "title": "Time spent in GC",
+  "tooltip": {
+    "msResolution": false,
+    "shared": true,
+    "sort": 0,
+    "value_type": "cumulative"
+  },
+  "type": "graph",
+  "xaxis": {
+    "buckets": null,
+    "mode": "time",
+    "name": null,
+    "show": true,
+    "values": []
+  }
+}

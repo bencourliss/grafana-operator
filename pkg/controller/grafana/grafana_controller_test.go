@@ -24,6 +24,7 @@ import (
 	"github.com/onsi/gomega"
 	"golang.org/x/net/context"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -34,14 +35,18 @@ import (
 
 var c client.Client
 
-var expectedRequest = reconcile.Request{NamespacedName: types.NamespacedName{Name: "foo", Namespace: "default"}}
-var depKey = types.NamespacedName{Name: "foo-deployment", Namespace: "default"}
+var expectedDeployRequest = reconcile.Request{NamespacedName: types.NamespacedName{Name: "grafana-test-deployment", Namespace: "default"}}
+var depKey = types.NamespacedName{Name: "grafana-test-deployment", Namespace: "default"}
+var confKey = types.NamespacedName{Name: "grafana-test-config", Namespace: "default"}
+var serKey = types.NamespacedName{Name: "grafana-test-service", Namespace: "default"}
+var expectedConfigRequest = reconcile.Request{NamespacedName: types.NamespacedName{Name: "grafana-test-config", Namespace: "default"}}
+var expectedServiceRequest = reconcile.Request{NamespacedName: types.NamespacedName{Name: "grafana-test-service", Namespace: "default"}}
 
 const timeout = time.Second * 5
 
 func TestReconcile(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
-	instance := &monitorsv1alpha1.Grafana{ObjectMeta: metav1.ObjectMeta{Name: "foo", Namespace: "default"}}
+	instance := &monitorsv1alpha1.Grafana{ObjectMeta: metav1.ObjectMeta{Name: "grafana-test-deployment", Namespace: "default"}}
 
 	// Setup the Manager and Controller.  Wrap the Controller Reconcile function so it writes each request to a
 	// channel when it is finished.
@@ -69,7 +74,9 @@ func TestReconcile(t *testing.T) {
 	}
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	defer c.Delete(context.TODO(), instance)
-	g.Eventually(requests, timeout).Should(gomega.Receive(gomega.Equal(expectedRequest)))
+	g.Eventually(requests, timeout).Should(gomega.Receive(gomega.Equal(expectedDeployRequest)))
+
+	//Deployment
 
 	deploy := &appsv1.Deployment{}
 	g.Eventually(func() error { return c.Get(context.TODO(), depKey, deploy) }, timeout).
@@ -77,12 +84,42 @@ func TestReconcile(t *testing.T) {
 
 	// Delete the Deployment and expect Reconcile to be called for Deployment deletion
 	g.Expect(c.Delete(context.TODO(), deploy)).NotTo(gomega.HaveOccurred())
-	g.Eventually(requests, timeout).Should(gomega.Receive(gomega.Equal(expectedRequest)))
+	g.Eventually(requests, timeout).Should(gomega.Receive(gomega.Equal(expectedDeployRequest)))
 	g.Eventually(func() error { return c.Get(context.TODO(), depKey, deploy) }, timeout).
 		Should(gomega.Succeed())
 
 	// Manually delete Deployment since GC isn't enabled in the test control plane
 	g.Eventually(func() error { return c.Delete(context.TODO(), deploy) }, timeout).
-		Should(gomega.MatchError("deployments.apps \"foo-deployment\" not found"))
+		Should(gomega.MatchError("deployments.apps \"grafana-test-deployment\" not found"))
+
+	//ConfigMap
+	//Create grafana configMap and expect the configMap to be created
+
+	configmap_test := &corev1.ConfigMap{}
+	g.Eventually(func() error { return c.Get(context.TODO(), confKey, configmap_test) }, timeout).Should(gomega.Succeed())
+
+	g.Expect(c.Delete(context.TODO(), configmap_test)).NotTo(gomega.HaveOccurred())
+	g.Eventually(requests, timeout).Should(gomega.Receive(gomega.Equal(expectedConfigRequest)))
+	g.Eventually(func() error { return c.Get(context.TODO(), confKey, configmap_test) }, timeout).Should(gomega.Succeed())
+
+	//Manually delete configmap since GC isn't enabled in the test controller plane
+	g.Eventually(func() error { return c.Delete(context.TODO(), configmap_test) }, timeout).
+		Should(gomega.MatchError("configmap.corev1 \"grafana-test-configmap\" not found"))
+
+	//Service
+	service_test := &corev1.Service{}
+
+	g.Eventually(func() error { return c.Get(context.TODO(), serKey, service_test) }, timeout).
+		Should(gomega.Succeed())
+
+	// Delete the Deployment and expect Reconcile to be called for Deployment deletion
+	g.Expect(c.Delete(context.TODO(), deploy)).NotTo(gomega.HaveOccurred())
+	g.Eventually(requests, timeout).Should(gomega.Receive(gomega.Equal(expectedServiceRequest)))
+	g.Eventually(func() error { return c.Get(context.TODO(), serKey, service_test) }, timeout).
+		Should(gomega.Succeed())
+
+	// Manually delete Deployment since GC isn't enabled in the test control plane
+	g.Eventually(func() error { return c.Delete(context.TODO(), deploy) }, timeout).
+		Should(gomega.MatchError("service.corev1 \"grafana-test-service\" not found"))
 
 }
